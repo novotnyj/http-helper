@@ -5,7 +5,7 @@ Recently I have to work a lot with sending HTTP requests and parsing responses i
 * curl
 * pecl_http
 
-Curl works nice (except CURLOPT_FOLLOWLOCATION and open_basedir or safe_mode). But I didn't like coding it in C-like style, I wanted something object oriented.
+Curl works nice (except CURLOPT_FOLLOWLOCATION and open_basedir or safe_mode). But I didn't like coding in C-like style. I wanted something object oriented.
 
 HttpRequest from pecl_http was ok for my usage and it is object oriented. But I had to install pecl_http everywere I wanted to use it.
 
