@@ -216,6 +216,13 @@ class Request {
 		if (count($this->cookies)>0) {
 			@curl_setopt($this->handle, CURLOPT_COOKIE, implode('; ', $this->cookies));
 		}
+		if (count($this->headers)>0) {
+			$tmp = array();	
+			foreach ($headers as $key => $value) {
+				$tmp[] = "$key: $value";
+			}
+			@curl_setopt($this->handle, CURLOPT_HTTPHEADER, $tmp);
+		}
 		$response = curl_exec($this->handle);
 		/// CURL error
 		if ($response == FALSE) {
@@ -391,4 +398,4 @@ class Cookie {
 	}
 }
 
-class RequestException extends Exception { }
+class RequestException extends \Exception { }
