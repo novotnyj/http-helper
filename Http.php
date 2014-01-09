@@ -36,7 +36,8 @@ namespace HttpHelper;
 
 /**
  * Class Request
- * @package Http
+ * Represents HTTP Request, 
+ * @package HttpHelper
  * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 class Request {
@@ -75,7 +76,7 @@ class Request {
 	/**
 	 * @var string
 	 */
-	private $method;
+	private $method = self::GET;
 
 	/**
 	 * @var bool
@@ -118,16 +119,23 @@ class Request {
 	private $rawUrl = '';
 
 	/**
+	* @var int
+	*/
+	private $connectionTimeout = 0;
+
+	/**
 	 * Creates new Request instance.
 	 * @param string|null $url
 	 * @param string|null $method
 	 */
 	public function __construct($url = NULL, $method = NULL){
 		$this->response = new Response();
+		if (!function_exists('curl_init')) {
+			throw new RequestException('curl_init doesn\'t exists. Is curl extension instaled and enabled?');
+		}
 		$this->handle = curl_init();
 		@curl_setopt($this->handle, CURLOPT_RETURNTRANSFER, 1);
-		@curl_setopt($this->handle, CURLOPT_HEADER, 1);
-		@curl_setopt($this->handle, CURLOPT_VERBOSE, 1);
+		@curl_setopt($this->handle, CURLOPT_HEADER, 1);		
 		if ($url) $this->setUrl($url);
 		if ($method) $this->setMethod($method);
 	}
@@ -158,6 +166,20 @@ class Request {
 				throw new \InvalidArgumentException('Unknown method: ' . $method);
 		}
 	}
+	
+	/**
+	* Enables verbose output of CURL, usable for debugging.
+	*/
+	public function enableVerbose() {
+		@curl_setopt($this->handle, CURLOPT_VERBOSE, TRUE);
+	}
+
+	/**
+	* Disables verbose output of CURL.
+	*/
+	public function disableVerbose() {
+		@curl_setopt($this->handle, CURLOPT_VERBOSE, FALSE);
+	}
 
 	/**
 	 * Get the previously set request method.
@@ -165,6 +187,23 @@ class Request {
 	 */
 	public function getMethod() {
 		return $this->method;
+	}
+
+	/**
+	* Set request connection timeout.
+	* @param int $seconds The number of seconds to wait while trying to connect. Use 0 to wait indefinitely.
+	*/
+	public function setConnectionTimeout($seconds) {
+		$this->connectionTimeout = $seconds;
+		@curl_setopt($this->handle, CURLOPT_CONNECTIONTIMEOUT, $seconds);
+	}
+
+	/**
+	* Get previously set request connection timeout.
+	* @return int
+	*/
+	public function getConnectionTimeout() {
+		return $this->connectionTimeout;
 	}
 
 	/**
@@ -184,6 +223,14 @@ class Request {
 		} else {
 			throw new \InvalidArgumentException('String required, got: ' . gettype($url));
 		}
+	}
+
+	/**
+	* Get the previously set request URL.
+	* @return string
+	*/
+	public function getUrl() {
+		return $this->rawUrl;
 	}
 
 	/**
@@ -207,10 +254,11 @@ class Request {
 	/**
 	 * Get response header(s) after the request has been sent.
 	 * @param string $name Header name (optional), If name was given and and not found NULL is returned
+	 * @param string $default Default value in case header with $name was not found
 	 * @return array|string|NULL
 	 */
-	public function getResponseHeader($name = NULL){
-		return $this->response->getHeader($name);
+	public function getResponseHeader($name = NULL, $default= NULL){
+		return $this->response->getHeader($name, $default);
 	}
 
 	/**
@@ -239,17 +287,15 @@ class Request {
 	/**
 	 * Set custom cookies.
 	 * @param $cookies
-	 * @return bool
 	 */
 	public function setCookies($cookies){
 		$this->cookies = array();
-		return $this->addCookies($cookies);
+		$this->addCookies($cookies);
 	}
 
 	/**
 	 * Add custom cookies.
-	 * @param $cookies
-	 * @return bool
+	 * @param $cookies Array of Cookie objects, or $name => $value pairs
 	 * @throws \InvalidArgumentException
 	 */
 	public function addCookies($cookies){
@@ -261,17 +307,29 @@ class Request {
 				}
 				$this->cookies[$name] = new Cookie($name, $value);
 			}
-			return TRUE;
 		} else {
 			throw new \InvalidArgumentException("Array required, got:" . gettype($cookies));
 		}
 	}
 
 	/**
-	 * Get previously set request headers.
-	 * @return array
-	 */
+	* Get previously set request headers.
+	* @return array Array of headers
+	*/
 	public function getHeaders() {
+		return $this->getHeader();
+	}
+
+	/**
+	 * Get previously set request headers.
+	 * @param string $name (optional) Header name. If ommited array of all headers is returned.
+	 * @param string $default (optional) Default value in case header with $name doesn't exists
+	 * @return array|string
+	 */
+	public function getHeader($name = NULL, $default = NULL) {
+		if ($name != NULL) {
+			return array_key_exists($name, $this->headers) ? $this->headers[$name] : $default;
+		}
 		return $this->headers;
 	}
 
@@ -306,7 +364,8 @@ class Request {
 
 	/**
 	 * Set the POST data entries, overwriting previously set POST data.
-	 * @param $data Array of key=>value pairs
+	 * To send a file by POST request simply add it's absolute path as value.
+	 * @param $data Array of name=>value pairs
 	 */
 	public function setPostFields($data){
 		$this->post = array();
@@ -315,7 +374,8 @@ class Request {
 
 	/**
 	 * Adds POST data entries, leaving previously set unchanged, unless a post entry with the same name already exists.
-	 * @param $data Array of key=>value pairs
+	 * To send a file by POST request simply add it's absolute path as value.
+	 * @param $data Array of name=>value pairs
 	 * @throws \InvalidArgumentException
 	 */
 	public function addPostFields($data) {
@@ -360,6 +420,7 @@ class Request {
 		if (count($this->cookies)>0) {
 			@curl_setopt($this->handle, CURLOPT_COOKIE, implode('; ', $this->cookies));
 		}
+		/// Set Cookies to CURL handle
 		if (count($this->headers)>0) {
 			$tmp = array();	
 			foreach ($this->headers as $key => $value) {
@@ -367,33 +428,39 @@ class Request {
 			}
 			@curl_setopt($this->handle, CURLOPT_HTTPHEADER, $tmp);
 		}
+		/// Set post fields to CURL handle
 		if (count($this->post)>0 &&
 			($this->method == self::POST || $this->method == self::PUT || $this->method == self::DELETE)) {
 			@curl_setopt($this->handle, CURLOPT_POSTFIELDS, $this->post);
 		}
+		/// Execute
 		$response = curl_exec($this->handle);
-		/// CURL error
+		/// Handle CURL error
 		if ($response == FALSE) {
 			throw new RequestException("CURL error [" . curl_errno($this->handle) . "]: " . curl_error($this->handle),
 										curl_errno($this->handle));
 		}
+		/// Separate response header and body
 		/// Http 100 workaround
 		$parts = explode("\r\n\r\nHTTP/", $response);
 		$parts = (count($parts) > 1 ? 'HTTP/' : '').array_pop($parts);
 		list($headers, $body) = explode("\r\n\r\n", $parts, 2);
-		$this->response = new Response(curl_getinfo($this->handle, CURLINFO_HTTP_CODE), $headers,$body);
+		$this->response = new Response(curl_getinfo($this->handle, CURLINFO_HTTP_CODE), $headers, $body);
 		
-		/// If cookiesEnabled call setCookies with response cookies
+		/// If cookiesEnabled then call addCookies with response cookies
 		if ($this->cookiesEnabled) {
 			$this->addCookies($this->response->getCookies());
 		}
+		/// Are redirects enabled? (Also check redirects count)
 		if ($this->autoFollow && ($this->response->getCode() == 302 || $this->response->getCode()==301) 
 			&& $this->redirectCount < $this->maxRedirects) {
+			/// Change method to GET
 			$this->setMethod(self::GET);
+			/// Find out location
 			$location = $this->response->getHeaders()['Location'];
-			if (strpos($location, '/') == 0 && $this->url != NULL){
+			if (strpos($location, '/') == 0 && $this->url != NULL) {
 				$url = isset($this->url['scheme']) ? $this->url['scheme'] . '://' : '';
-				if (isset($this->url['user']) && isset($this->url['pass'])){
+				if (isset($this->url['user']) && isset($this->url['pass'])) {
 					$url .= $this->url['user'] . ':' . $this->url['pass'] . '@';
 				}
 				$url .= isset($this->url['host']) ? $this->url['host'] : '';
@@ -401,10 +468,16 @@ class Request {
 				$url .= $location;
 				$location = $url;
 			}
-			$this->setUrl($this->response->getHeaders()['Location']);
+			$this->setUrl($location);
+			$this->addHeaders(array(
+				'Referer' => $this->rawUrl
+			));
 			$this->redirectCount++;
 			$this->response = $this->send();
 		} else {
+			if ($this->redirectCount == $this->maxRedirects) {
+				throw new RequestException("Maximum of " . $this->maxRedirects . " reached.");
+			}
 			$this->redirectCount = 0;
 		}
 		return $this->response;
@@ -414,7 +487,8 @@ class Request {
 
 /**
  * Class Response
- * @package Http
+ * Represents HTTP response
+ * @package HttpHelper
  * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 class Response {
@@ -444,10 +518,10 @@ class Response {
 	 */
 	public function __construct($code = 0, $headers = '', $body = '') {
 		$this->code = $code;
-		if (preg_match_all('/^(?<key>[^\:\n]+)\:(?<value>.+)$/m', $headers, $m)){
-			foreach ($m['key'] as $i => $key){
+		if (preg_match_all('/^(?<key>[^\:\n]+)\:(?<value>.+)$/m', $headers, $m)) {
+			foreach ($m['key'] as $i => $key) {
 				/// Parse response cookies
-				if (strtolower($key) == 'set-cookie'){
+				if (strtolower($key) == 'set-cookie') {
 					$this->parseCookie(trim($m['value'][$i]));
 					/// Keep set-cookie out of responseHeaders array
 					continue;
@@ -462,9 +536,9 @@ class Response {
 	 * Try to find response body encoding and try to decode it.
 	 * @return string
 	 */
-	private function decodeBody(){
+	private function decodeBody() {
 		/**
-		 * Credit to Paul Tarjan's answer on:
+		 * Credits to Paul Tarjan's answer on:
 		 * http://stackoverflow.com/questions/2510868/php-convert-curl-exec-output-to-utf8
 		 */
 		$type = $this->getHeader("Content-Type","");
@@ -496,14 +570,15 @@ class Response {
 		}
 		/* 5: Default for HTML */
 		if (!isset($charset)) {
-			if (strstr($type, "text/html") === 0)
+			if (strstr($type, "text/html") === 0) {
 				$charset = "ISO 8859-1";
+			}
 		}
 		/* Convert it if it is anything but UTF-8 */
-		/* You can change "UTF-8"  to "UTF-8//IGNORE" to
-		   ignore conversion errors and still output something reasonable */
-		if (isset($charset) && strtoupper($charset) != "UTF-8")
+		/* You can change "UTF-8"  to "UTF-8//IGNORE" to ignore conversion errors and still output something reasonable */
+		if (isset($charset) && strtoupper($charset) != "UTF-8") {
 			return iconv($charset, 'UTF-8', $this->body);
+		}
 		return $this->body;
 	}
 
@@ -511,11 +586,11 @@ class Response {
 	 * Parses Set-Cookie value and adds it to $cookies array
 	 * @param $value
 	 */
-	private function parseCookie($value){
-		if (preg_match_all('/(?<key>[^\=]+)[\=]{0,1}(?<value>[^\;]*)[\;]{0,1}\s*/m', $value, $m)){
+	private function parseCookie($value) {
+		if (preg_match_all('/(?<key>[^\=]+)[\=]{0,1}(?<value>[^\;]*)[\;]{0,1}\s*/m', $value, $m)) {
 			$cookie = new Cookie($m['key'][0]);
 			foreach($m['key'] as $i => $key) {
-				if ($key == $cookie->name){
+				if ($key == $cookie->name) {
 					$cookie->value = $m['value'][$i];
 					continue;
 				}
@@ -556,7 +631,7 @@ class Response {
 	 * @param null $default Default value to return if name doesn't exists
 	 * @return array|null
 	 */
-	public function getHeader($name = NULL, $default = NULL){
+	public function getHeader($name = NULL, $default = NULL) {
 		if ($name) {
 			return array_key_exists($name, $this->headers) ? $this->headers[$name] : $default;
 		} else {
@@ -584,7 +659,7 @@ class Response {
 
 /**
  * Class Cookie
- * @package Http
+ * @package HttpHelper
  * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 class Cookie {
@@ -599,7 +674,7 @@ class Cookie {
 	 * @param string $name
 	 * @param string $value
 	 */
-	public function __construct($name = '', $value = ''){
+	public function __construct($name = '', $value = '') {
 		$this->data['name'] = $name;
 		$this->data['value'] = $value;
 	}
@@ -620,22 +695,30 @@ class Cookie {
 	 * @param $name
 	 * @param $value
 	 */
-	public function __set($name, $value){
+	public function __set($name, $value) {
 		$this->data[$name] = $value;
+	}
+
+	/**
+	* @param string $name
+	* @return bool
+	*/
+	public function __isset($name) {
+		return array_key_exists($name, $this->data);
 	}
 
 	/**
 	 * String representation of Cookie in name=value format.
 	 * @return string
 	 */
-	public function __toString(){
+	public function __toString() {
 		return $this->data['name'] . '=' . $this->data['value'];
 	}
 }
 
 /**
  * Class RequestException
- * @package Http
+ * @package HttpHelper
  * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 class RequestException extends \Exception { }
