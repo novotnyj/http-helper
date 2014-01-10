@@ -1,7 +1,7 @@
 <?php
 
 require 'Tester/bootstrap.php';
-require '../Http.php';
+require '../HttpHelper.php';
 
 use Tester\Assert,
 	HttpHelper\Request;
@@ -17,9 +17,11 @@ Assert::same(NULL, $obj->getResponseHeader('Location'));
 Assert::same('foo.com', $obj->getResponseHeader('Location','foo.com'));
 Assert::same(array(), $obj->getResponseCookies());
 Assert::same(0, $obj->getResponseCode());
+$response = $obj->send();
+Assert::same(0, $response->getCode());
 
-Assert::Exception( function() {
-		$tmp = new Request();
-		$tmp->send();	
-	},
-	'LogicException', 'Cannot send request without URL.');
+
+$obj = new Request('http://foo.com', Request::POST);
+Assert::same('http://foo.com', $obj->getUrl());
+Assert::same(Request::POST, $obj->getMethod());
+

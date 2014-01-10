@@ -1,7 +1,7 @@
 <?php
 
 require 'Tester/bootstrap.php';
-require '../Http.php';
+require '../HttpHelper.php';
 
 use Tester\Assert,
 	HttpHelper\Request;

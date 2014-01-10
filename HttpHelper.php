@@ -101,7 +101,7 @@ class Request {
 	/**
 	 * @var int
 	 */
-	private $maxRedirects;
+	private $maxRedirects = 20;
 
 	/**
 	 * @var int
@@ -414,7 +414,8 @@ class Request {
 	public function send() {
 		if (!$this->hasUrl) {
 			/// Cannot send request without url
-			throw new \LogicException("Cannot send request without URL.");
+			/// throw new \LogicException("Cannot send request without URL.");
+			return new Response();
 		}
 		/// @Todo: filter cookies -> check domain, path, Secure, HttpOnly and maybe Expires and Max-Age properties
 		if (count($this->cookies)>0) {
@@ -476,7 +477,7 @@ class Request {
 			$this->response = $this->send();
 		} else {
 			if ($this->redirectCount == $this->maxRedirects) {
-				throw new RequestException("Maximum of " . $this->maxRedirects . " reached.");
+				throw new RequestException("Maximum of " . $this->maxRedirects . " redirects reached.");
 			}
 			$this->redirectCount = 0;
 		}
