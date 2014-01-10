@@ -1,4 +1,4 @@
-# HTTP
+# HttpHelper
 
 Recently I have to work a lot with sending HTTP requests and parsing responses in PHP. I have found 2 options to do this:
 
@@ -17,7 +17,7 @@ That's why I have decided to write this module. It is using CURl underhood and, 
 
 You can send HTTP request simillar to pecl_http:
 
-`
+```php
 use HttpHelper\Request;
 
 $request = new Request("http://www.google.com");
@@ -25,11 +25,11 @@ $request->send();
 if ($request->getResponseCode() == 200) {
 	echo $request->getResponseBody();
 }
-`
+```
 
 Or you can use HttpHelper\Response object returned by send method:
 
-`
+```php
 ...
 try {
 	$response = $request->send();
@@ -39,13 +39,13 @@ try {
 } catch (RequestException $e) {
 	echo $e->getMessage();
 }
-`
+```
 
 ### Post request
 
 To send a post request change method to POST
 
-`
+```php
 use HttpHelper\Request;
 
 $request = new Request("http://www.foo.com/sign/in", Request::POST);
@@ -61,28 +61,28 @@ try {
 } catch (RequestException $e) {
 	echo $e->getMessage();
 }
-`
+```
 
 To send a file using POST request:
 
-`
+```php
 ...
 $request->setMethod(Request::POST);
 $request->setPostFields(array(
 	'upload' => '/absolute/path/to/file.ext'
 ));
 ...
-`
+```
 
 ### Follow redirects
 
 To enable automatic following Location header (for 301 and 302 response codes):
 
-`
+```php
 ...
 $request->enableRedirects();
 ...
-`
+```
 
 By default this will follow Location only 20 times. After that RequestException will be raised from send method.
 You can pass different limit as parameter to enableRedirects (0 means follow Location infinite times).
@@ -96,11 +96,11 @@ $request->enableRedirects(999);
 
 To enable automatic using of response cookies for next request:
 
-`
+```php
 ...
 $request->enableCookies();
 ...
-`
+```
 
 NOTE: filtering response cookies by domain, path, expiration date is not implemented yet - so all response cookies are used for next request. 
 
