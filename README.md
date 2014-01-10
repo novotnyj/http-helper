@@ -2,14 +2,14 @@
 
 Recently I have to work a lot with sending HTTP requests and parsing responses in PHP. I have found 2 options to do this:
 
-* curl
+* cURL
 * pecl_http
 
-Curl works flawless (except CURLOPT_FOLLOWLOCATION and open_basedir or safe_mode). I didn't like using C-like style in object oriented app.
+cURL works flawless (except CURLOPT_FOLLOWLOCATION and open_basedir or safe_mode). I didn't like using C-like style in object oriented app.
 
 HttpRequest from pecl_http was ok for my usage and it is object oriented. But I had to install pecl_http everywere I wanted to use it.
 
-That's why I have decided to write this module. It is using CURl underhood and, and it is object oriented.
+That's why I have decided to write this module. It is using cURL underhood and, and it is object oriented.
 
 ## Examples
 
