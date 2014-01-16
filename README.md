@@ -1,15 +1,8 @@
 # HttpHelper
 
-Recently I have to work a lot with sending HTTP requests and parsing responses in PHP. I have found 2 options to do this:
-
-* cURL
-* pecl_http
-
-cURL works flawless (except CURLOPT_FOLLOWLOCATION and open_basedir or safe_mode). I didn't like using C-like style in object oriented app.
-
-HttpRequest from pecl_http was ok for my usage and it is object oriented. But I had to install pecl_http everywere I wanted to use it.
-
-That's why I have decided to write this module. It is using cURL underhood and, and it is object oriented.
+This PHP module started as alternative to the pecl_http. Its goal is to make dealing with HTTP requests and cURL easier and object oriented.
+Basic methods are using similar names to make it easier to switch between pecl_http and HttpHelper.
+HttpHelper\Request is using cURL underhood so you need to have cURL extension enabled in your php.ini
 
 ## Examples
 
@@ -91,6 +84,8 @@ To follow Location for 999 times:
 `
 $request->enableRedirects(999);
 `
+
+Note: This function is not using CURLOPT_FOLLOWLOCATION, so you should be fine even with open_basedir or safe_mode in your php.ini
 
 ### Use response cookies
 
