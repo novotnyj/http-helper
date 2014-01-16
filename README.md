@@ -1,7 +1,11 @@
 # HttpHelper
 
-This PHP module started as alternative to the pecl_http. Its goal is to make dealing with HTTP requests and cURL easier and object oriented.
-Basic methods are using similar names to make it easier to switch between pecl_http and HttpHelper.
+This PHP module has started as alternative to the pecl_http. 
+
+Goal is to make working with HTTP requests and cURL easier and object oriented.
+
+Basic methods are using names similar pecl_http HttpRequest to make it easier to switch between pecl_http and HttpHelper.
+
 HttpHelper\Request is using cURL underhood so you need to have cURL extension enabled in your php.ini
 
 ## Examples
