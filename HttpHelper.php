@@ -291,10 +291,13 @@ class Request {
 
 	/**
 	 * Add custom cookies.
-	 * @param $cookies Array of Cookie objects, or $name => $value pairs
+	 * @param Cookie|array $cookies Array of Cookie objects, or $name => $value pairs
 	 * @throws \InvalidArgumentException
 	 */
 	public function addCookies($cookies){
+		if ($cookies instanceof Cookie) {
+			$cookies = array($cookies);
+		}
 		if (is_array($cookies)){
 			foreach($cookies as $name => $value){
 				if ($value instanceof Cookie){
