@@ -418,12 +418,33 @@ class Request {
 		}
 		/// @Todo: filter cookies -> check domain, path, Secure, HttpOnly and maybe Expires and Max-Age properties
 		if (count($this->cookies)>0) {
-			@curl_setopt($this->handle, CURLOPT_COOKIE, implode('; ', $this->cookies));
+			$tmp = array();
+			foreach ($this->cookies as $cookie) {
+				if (isset($cookie->domain) && isset($this->url['host'])) {
+					if (!preg_match('/'.preg_quote($cookie->domain).'/', $this->url['host'])){
+						continue;
+					}
+				}
+				if (isset($cookie->path) && isset($this->url['path'])) {
+					if (!preg_match('/'.preg_quote($cookie->path, '/').'/', $this->url['path'])){
+						continue;
+					}
+				}
+				if (isset($cookie->Secure) && isset($this->url['scheme'])) {
+					if (!preg_match('/^https$/', $this->url['scheme'])){
+						continue;
+					}
+				}
+				$tmp[] = $cookie;
+			}
+			if (count($tmp) > 0) {
+				@curl_setopt($this->handle, CURLOPT_COOKIE, implode('; ', $tmp));
+			}
 		}
 		/// Set Cookies to CURL handle
 		if (count($this->headers)>0) {
 			$tmp = array();	
-			foreach ($this->headers as $key => $value) {
+			foreach ($this->headers as $key => $value) {				
 				$tmp[] = "$key: $value";
 			}
 			@curl_setopt($this->handle, CURLOPT_HTTPHEADER, $tmp);

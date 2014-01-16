@@ -81,9 +81,9 @@ By default this will follow Location only 20 times. After that RequestException 
 You can pass different limit as parameter to enableRedirects (0 means follow Location infinite times).
 To follow Location for 999 times:
 
-`
+```php
 $request->enableRedirects(999);
-`
+```
 
 Note: This function is not using CURLOPT_FOLLOWLOCATION, so you should be fine even with open_basedir or safe_mode in your php.ini
 
@@ -97,5 +97,5 @@ $request->enableCookies();
 ...
 ```
 
-NOTE: filtering response cookies by domain, path, expiration date is not implemented yet - so all response cookies are used for next request. 
+NOTE: filtering response cookies by expiration date is not implemented yet. 
 
