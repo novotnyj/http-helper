@@ -38,8 +38,7 @@ software, even if advised of the possibility of such damage.
 namespace HttpHelper;
 
 /**
- * Class Request
- * Represents HTTP Request, 
+ * Represents HTTP Request.
  * @package HttpHelper
  * @author Jan Novotny <naj.yntovon@gmail.com>
  */
@@ -126,21 +125,15 @@ class Request {
 	*/
 	private $connectionTimeout = 0;
 
-	/**
-	 * Creates new Request instance.
-	 * @param string|null $url
-	 * @param string|null $method
-	 */
 	public function __construct($url = NULL, $method = NULL){
 		$this->response = new Response();
-		if (!function_exists('curl_init')) {
-			throw new RequestException('curl_init doesn\'t exists. Is curl extension instaled and enabled?');
-		}
-		$this->handle = curl_init();
-		@curl_setopt($this->handle, CURLOPT_RETURNTRANSFER, 1);
-		@curl_setopt($this->handle, CURLOPT_HEADER, 1);		
-		if ($url) $this->setUrl($url);
-		if ($method) $this->setMethod($method);
+		if (function_exists('curl_init')) {			
+			$this->handle = curl_init();
+			@curl_setopt($this->handle, CURLOPT_RETURNTRANSFER, 1);
+			@curl_setopt($this->handle, CURLOPT_HEADER, 1);		
+			if ($url) $this->setUrl($url);
+			if ($method) $this->setMethod($method);
+		}				
 	}
 
 	/**
@@ -194,18 +187,18 @@ class Request {
 
 	/**
 	* Set request connection timeout.
-	* @param int $seconds The number of seconds to wait while trying to connect. Use 0 to wait indefinitely.
+	* @param int $seconds number of seconds to wait while trying to connect. Use 0 to wait indefinitely.
 	*/
-	public function setConnectionTimeout($seconds) {
+	public function setConnectTimeout($seconds) {
 		$this->connectionTimeout = $seconds;
-		@curl_setopt($this->handle, CURLOPT_CONNECTIONTIMEOUT, $seconds);
+		@curl_setopt($this->handle, CURLOPT_CONNECTTIMEOUT, $seconds);
 	}
 
 	/**
-	* Get previously set request connection timeout.
+	* Get previously set request connect timeout.
 	* @return int
 	*/
-	public function getConnectionTimeout() {
+	public function getConnectTimeout() {
 		return $this->connectionTimeout;
 	}
 
@@ -415,6 +408,9 @@ class Request {
 	 * @throws RequestException
 	 */
 	public function send() {
+		if (!function_exists('curl_init')) {
+			throw new RequestException('curl_init doesn\'t exists. Is curl extension instaled and enabled?');
+		}
 		if (!$this->hasUrl) {
 			/// Cannot send request without url
 			/// throw new \LogicException("Cannot send request without URL.");
@@ -490,8 +486,7 @@ class Request {
 }
 
 /**
- * Class Response
- * Represents HTTP response
+ * Class Response, represents HTTP response
  * @package HttpHelper
  * @author Jan Novotny <naj.yntovon@gmail.com>
  */
@@ -515,7 +510,6 @@ class Response {
 	private $cookies = array();
 
 	/**
-	 * Creates Response instance.
 	 * @param int $code
 	 * @param string $headers
 	 * @param string $body
@@ -673,11 +667,6 @@ class Cookie {
 	 */
 	private $data = array();
 
-	/**
-	 * Create instance of Cookie.
-	 * @param string $name
-	 * @param string $value
-	 */
 	public function __construct($name = '', $value = '') {
 		$this->data['name'] = $name;
 		$this->data['value'] = $value;
