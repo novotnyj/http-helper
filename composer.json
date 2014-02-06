@@ -1,5 +1,5 @@
 {
-    "name": "novotnyj/HttpHelper",
+    "name": "novotnyj/http-helper",
     "description" : "An alternative to pecl_http build on cURL. See README.md for details.",
     "version": "1.0.0",
 	"homepage": "https://github.com/novotnyj/HttpHelper",
