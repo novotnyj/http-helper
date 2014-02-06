@@ -1,0 +1,19 @@
+{
+    "name": "novotnyj/HttpHelper",
+    "description" : "An alternative to pecl_http build on cURL. See README.md for details.",
+    "version": "1.0.0",
+	"homepage": "https://github.com/novotnyj/HttpHelper",
+	"license": "BSD-3-Clause",
+	"type": "library",
+	"require": {
+	        "php" : ">=5.3.1",
+			"ext-curl": "*"
+	},
+	"keywords": ["php", "http"],
+	"authors": [
+	        {
+	            "name": "Jan Novotny",
+	            "email": "naj.yntovon@gmail.com"
+	        }
+	]
+}
