@@ -481,7 +481,7 @@ class Request {
 			/// Change method to GET
 			$this->setMethod(self::GET);
 			/// Find out location
-			$location = $this->response->getHeaders()['Location'];
+			$location = $this->response->getHeader('Location');
 			if (strpos($location, '/') == 0 && $this->url != NULL) {
 				$url = isset($this->url['scheme']) ? $this->url['scheme'] . '://' : '';
 				if (isset($this->url['user']) && isset($this->url['pass'])) {
