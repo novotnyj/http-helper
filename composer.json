@@ -1,6 +1,6 @@
 {
     "name": "novotnyj/http-helper",
-    "description" : "An alternative to pecl_http build on cURL. See README.md for details.",
+    "description" : "PHP library to help working with HTTP requests and responses without pecl_http.",
     "version": "1.0.0",
 	"homepage": "https://github.com/novotnyj/http-helper",
 	"license": "BSD-3-Clause",
