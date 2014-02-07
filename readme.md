@@ -1,17 +1,22 @@
 # HttpHelper
 
-Recently I have to work a lot with sending HTTP requests and parsing responses in PHP. I have found 2 options to do this:
+This PHP library was created as alternative to the pecl_http. 
 
-* cURL
-* pecl_http
+Goal is to make working with HTTP requests and cURL easier and object oriented.
 
-cURL works flawless (except CURLOPT_FOLLOWLOCATION and open_basedir or safe_mode). I didn't like using C-like style in object oriented app.
+Basic methods are using names similar to pecl_http HttpRequest to make it easier to switch between pecl_http and HttpHelper.
 
-HttpRequest from pecl_http was ok for my usage and it is object oriented. But I had to install pecl_http everywere I wanted to use it.
+HttpHelper\Request is using cURL underhood so you need to have cURL extension enabled in your php.ini
 
-That's why I have decided to write this module. It is using cURL underhood and, and it is object oriented.
+## Requirements
 
-## Examples
+HttpHelper requires PHP 5.3.1 or later with php5-curl installed.
+
+## Instalation
+
+HttpHelper can be installed using [Composer](https://getcomposer.org/). Package can be found in [Packagist](https://packagist.org/packages/novotnyj/http-helper) repository.
+
+## Usage examples
 
 ### Get request
 
@@ -27,7 +32,7 @@ if ($request->getResponseCode() == 200) {
 }
 ```
 
-Or you can use HttpHelper\Response object returned by send method:
+Or you can use HttpHelper\Response object returned by send method. Also wrap send method in try/catch block in case something went wrong:
 
 ```php
 ...
@@ -76,7 +81,7 @@ $request->setPostFields(array(
 
 ### Follow redirects
 
-To enable automatic following Location header (for 301 and 302 response codes):
+To enable automatic following Location header (for 301, 302 and 303 response codes):
 
 ```php
 ...
@@ -88,9 +93,11 @@ By default this will follow Location only 20 times. After that RequestException 
 You can pass different limit as parameter to enableRedirects (0 means follow Location infinite times).
 To follow Location for 999 times:
 
-`
+```php
 $request->enableRedirects(999);
-`
+```
+
+**Note:** This function is not using CURLOPT_FOLLOWLOCATION, so you should be fine even with open_basedir or safe_mode in your php.ini
 
 ### Use response cookies
 
@@ -102,5 +109,5 @@ $request->enableCookies();
 ...
 ```
 
-NOTE: filtering response cookies by domain, path, expiration date is not implemented yet - so all response cookies are used for next request. 
+NOTE: filtering response cookies by expiration date is not implemented yet. 
 

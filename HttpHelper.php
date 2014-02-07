@@ -1,47 +1,14 @@
 <?php
 
-/*
-New BSD License
-
-Copyright (c) 2014 Jan Novotny (naj.yntovon@gmail.com)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-	* Redistributions of source code must retain the above copyright notice,
-	this list of conditions and the following disclaimer.
-
-	* Redistributions in binary form must reproduce the above copyright notice,
-	this list of conditions and the following disclaimer in the documentation
-	and/or other materials provided with the distribution.
-
-	* Neither the name of author nor the names of its contributors
-	may be used to endorse or promote products derived from this software
-	without specific prior written permission.
-
-This software is provided by the copyright holders and contributors "as is" and
-any express or implied warranties, including, but not limited to, the implied
-warranties of merchantability and fitness for a particular purpose are
-disclaimed. In no event shall the copyright owner or contributors be liable for
-any direct, indirect, incidental, special, exemplary, or consequential damages
-(including, but not limited to, procurement of substitute goods or services;
-loss of use, data, or profits; or business interruption) however caused and on
-any theory of liability, whether in contract, strict liability, or tort
-(including negligence or otherwise) arising in any way out of the use of this
-software, even if advised of the possibility of such damage.
-*/
-
 /**
  * @version 1.0.0
+ * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 namespace HttpHelper;
 
 /**
- * Class Request
- * Represents HTTP Request, 
+ * Represents HTTP Request.
  * @package HttpHelper
- * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 class Request {
 
@@ -126,21 +93,15 @@ class Request {
 	*/
 	private $connectionTimeout = 0;
 
-	/**
-	 * Creates new Request instance.
-	 * @param string|null $url
-	 * @param string|null $method
-	 */
 	public function __construct($url = NULL, $method = NULL){
 		$this->response = new Response();
-		if (!function_exists('curl_init')) {
-			throw new RequestException('curl_init doesn\'t exists. Is curl extension instaled and enabled?');
-		}
-		$this->handle = curl_init();
-		@curl_setopt($this->handle, CURLOPT_RETURNTRANSFER, 1);
-		@curl_setopt($this->handle, CURLOPT_HEADER, 1);		
-		if ($url) $this->setUrl($url);
-		if ($method) $this->setMethod($method);
+		if (function_exists('curl_init')) {			
+			$this->handle = curl_init();
+			@curl_setopt($this->handle, CURLOPT_RETURNTRANSFER, 1);
+			@curl_setopt($this->handle, CURLOPT_HEADER, 1);		
+			if ($url) $this->setUrl($url);
+			if ($method) $this->setMethod($method);
+		}				
 	}
 
 	/**
@@ -194,18 +155,18 @@ class Request {
 
 	/**
 	* Set request connection timeout.
-	* @param int $seconds The number of seconds to wait while trying to connect. Use 0 to wait indefinitely.
+	* @param int $seconds number of seconds to wait while trying to connect. Use 0 to wait indefinitely.
 	*/
-	public function setConnectionTimeout($seconds) {
+	public function setConnectTimeout($seconds) {
 		$this->connectionTimeout = $seconds;
-		@curl_setopt($this->handle, CURLOPT_CONNECTIONTIMEOUT, $seconds);
+		@curl_setopt($this->handle, CURLOPT_CONNECTTIMEOUT, $seconds);
 	}
 
 	/**
-	* Get previously set request connection timeout.
+	* Get previously set request connect timeout.
 	* @return int
 	*/
-	public function getConnectionTimeout() {
+	public function getConnectTimeout() {
 		return $this->connectionTimeout;
 	}
 
@@ -298,10 +259,13 @@ class Request {
 
 	/**
 	 * Add custom cookies.
-	 * @param $cookies Array of Cookie objects, or $name => $value pairs
+	 * @param Cookie|array $cookies Array of Cookie objects, or $name => $value pairs
 	 * @throws \InvalidArgumentException
 	 */
 	public function addCookies($cookies){
+		if ($cookies instanceof Cookie) {
+			$cookies = array($cookies);
+		}
 		if (is_array($cookies)){
 			foreach($cookies as $name => $value){
 				if ($value instanceof Cookie){
@@ -409,29 +373,66 @@ class Request {
 	}
 
 	/**
+	 *  Filters and sets cookies to cURL handle.
+	 */
+	private function setUpCookies() {
+		/// @Todo: filter cookies -> check domain, path, Secure, HttpOnly and maybe Expires and Max-Age properties
+		if (count($this->cookies)>0) {
+			$tmp = array();
+			foreach ($this->cookies as $cookie) {
+				if (isset($cookie->domain) && isset($this->url['host'])) {
+					if (!preg_match('/'.preg_quote($cookie->domain).'/', $this->url['host'])){
+						continue;
+					}
+				}
+				if (isset($cookie->path) && isset($this->url['path'])) {
+					if (!preg_match('/'.preg_quote($cookie->path, '/').'/', $this->url['path'])){
+						continue;
+					}
+				}
+				if (isset($cookie->Secure) && isset($this->url['scheme'])) {
+					if (!preg_match('/^https$/', $this->url['scheme'])){
+						continue;
+					}
+				}
+				$tmp[] = $cookie;
+			}
+			if (count($tmp) > 0) {
+				@curl_setopt($this->handle, CURLOPT_COOKIE, implode('; ', $tmp));
+			}
+		}		
+	}
+	
+	/**
+	 * Sets headers to cURL handle.
+	 */
+	private function setUpHeaders() {
+		if (count($this->headers)>0) {
+			$tmp = array();	
+			foreach ($this->headers as $key => $value) {				
+				$tmp[] = "$key: $value";
+			}
+			@curl_setopt($this->handle, CURLOPT_HTTPHEADER, $tmp);
+		}
+	}
+
+	/**
 	 * Send the HTTP request.
 	 * @return Response
 	 * @throws \LogicException
 	 * @throws RequestException
 	 */
 	public function send() {
+		if (!function_exists('curl_init')) {
+			throw new RequestException('curl_init doesn\'t exists. Is curl extension instaled and enabled?');
+		}
 		if (!$this->hasUrl) {
 			/// Cannot send request without url
 			/// throw new \LogicException("Cannot send request without URL.");
 			return new Response();
 		}
-		/// @Todo: filter cookies -> check domain, path, Secure, HttpOnly and maybe Expires and Max-Age properties
-		if (count($this->cookies)>0) {
-			@curl_setopt($this->handle, CURLOPT_COOKIE, implode('; ', $this->cookies));
-		}
-		/// Set Cookies to CURL handle
-		if (count($this->headers)>0) {
-			$tmp = array();	
-			foreach ($this->headers as $key => $value) {
-				$tmp[] = "$key: $value";
-			}
-			@curl_setopt($this->handle, CURLOPT_HTTPHEADER, $tmp);
-		}
+		$this->setUpCookies();
+		$this->setUpHeaders();
 		/// Set post fields to CURL handle
 		if (count($this->post)>0 &&
 			($this->method == self::POST || $this->method == self::PUT || $this->method == self::DELETE)) {
@@ -456,12 +457,13 @@ class Request {
 			$this->addCookies($this->response->getCookies());
 		}
 		/// Are redirects enabled? (Also check redirects count)
-		if ($this->autoFollow && ($this->response->getCode() == 302 || $this->response->getCode()==301) 
+		if ($this->autoFollow && ($this->response->getCode() == 301 || 
+			$this->response->getCode()==302 || $this->response->getCode()==303) 
 			&& $this->redirectCount < $this->maxRedirects) {
 			/// Change method to GET
 			$this->setMethod(self::GET);
 			/// Find out location
-			$location = $this->response->getHeaders()['Location'];
+			$location = $this->response->getHeader('Location');
 			if (strpos($location, '/') == 0 && $this->url != NULL) {
 				$url = isset($this->url['scheme']) ? $this->url['scheme'] . '://' : '';
 				if (isset($this->url['user']) && isset($this->url['pass'])) {
@@ -490,10 +492,8 @@ class Request {
 }
 
 /**
- * Class Response
- * Represents HTTP response
+ * Class Response, represents HTTP response
  * @package HttpHelper
- * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 class Response {
 
@@ -515,7 +515,6 @@ class Response {
 	private $cookies = array();
 
 	/**
-	 * Creates Response instance.
 	 * @param int $code
 	 * @param string $headers
 	 * @param string $body
@@ -664,7 +663,6 @@ class Response {
 /**
  * Class Cookie
  * @package HttpHelper
- * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 class Cookie {
 
@@ -673,11 +671,6 @@ class Cookie {
 	 */
 	private $data = array();
 
-	/**
-	 * Create instance of Cookie.
-	 * @param string $name
-	 * @param string $value
-	 */
 	public function __construct($name = '', $value = '') {
 		$this->data['name'] = $name;
 		$this->data['value'] = $value;
@@ -723,6 +716,5 @@ class Cookie {
 /**
  * Class RequestException
  * @package HttpHelper
- * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 class RequestException extends \Exception { }
