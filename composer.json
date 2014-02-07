@@ -15,5 +15,10 @@
 	            "name": "Jan Novotny",
 	            "email": "naj.yntovon@gmail.com"
 	        }
-	]
+	],
+	"extra": {
+		"branch-alias" : {
+			"dev-master": "1.0.0"
+		}
+	}
 }

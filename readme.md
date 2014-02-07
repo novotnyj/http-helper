@@ -12,6 +12,10 @@ HttpHelper\Request is using cURL underhood so you need to have cURL extension en
 
 HttpHelper requires PHP 5.3.1 or later with php5-curl installed.
 
+## Instalation
+
+HttpHelper can be installed using [Composer](https://getcomposer.org/). Package can be found in [Packagist](https://packagist.org/packages/novotnyj/http-helper) repository.
+
 ## Usage examples
 
 ### Get request

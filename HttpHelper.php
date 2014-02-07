@@ -1,46 +1,14 @@
 <?php
 
-/*
-New BSD License
-
-Copyright (c) 2014 Jan Novotny (naj.yntovon@gmail.com)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-	* Redistributions of source code must retain the above copyright notice,
-	this list of conditions and the following disclaimer.
-
-	* Redistributions in binary form must reproduce the above copyright notice,
-	this list of conditions and the following disclaimer in the documentation
-	and/or other materials provided with the distribution.
-
-	* Neither the name of author nor the names of its contributors
-	may be used to endorse or promote products derived from this software
-	without specific prior written permission.
-
-This software is provided by the copyright holders and contributors "as is" and
-any express or implied warranties, including, but not limited to, the implied
-warranties of merchantability and fitness for a particular purpose are
-disclaimed. In no event shall the copyright owner or contributors be liable for
-any direct, indirect, incidental, special, exemplary, or consequential damages
-(including, but not limited to, procurement of substitute goods or services;
-loss of use, data, or profits; or business interruption) however caused and on
-any theory of liability, whether in contract, strict liability, or tort
-(including negligence or otherwise) arising in any way out of the use of this
-software, even if advised of the possibility of such damage.
-*/
-
 /**
  * @version 1.0.0
+ * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 namespace HttpHelper;
 
 /**
  * Represents HTTP Request.
  * @package HttpHelper
- * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 class Request {
 
@@ -405,20 +373,9 @@ class Request {
 	}
 
 	/**
-	 * Send the HTTP request.
-	 * @return Response
-	 * @throws \LogicException
-	 * @throws RequestException
+	 *  Filters and sets cookies to cURL handle.
 	 */
-	public function send() {
-		if (!function_exists('curl_init')) {
-			throw new RequestException('curl_init doesn\'t exists. Is curl extension instaled and enabled?');
-		}
-		if (!$this->hasUrl) {
-			/// Cannot send request without url
-			/// throw new \LogicException("Cannot send request without URL.");
-			return new Response();
-		}
+	private function setUpCookies() {
 		/// @Todo: filter cookies -> check domain, path, Secure, HttpOnly and maybe Expires and Max-Age properties
 		if (count($this->cookies)>0) {
 			$tmp = array();
@@ -443,8 +400,13 @@ class Request {
 			if (count($tmp) > 0) {
 				@curl_setopt($this->handle, CURLOPT_COOKIE, implode('; ', $tmp));
 			}
-		}
-		/// Set Cookies to CURL handle
+		}		
+	}
+	
+	/**
+	 * Sets headers to cURL handle.
+	 */
+	private function setUpHeaders() {
 		if (count($this->headers)>0) {
 			$tmp = array();	
 			foreach ($this->headers as $key => $value) {				
@@ -452,6 +414,25 @@ class Request {
 			}
 			@curl_setopt($this->handle, CURLOPT_HTTPHEADER, $tmp);
 		}
+	}
+
+	/**
+	 * Send the HTTP request.
+	 * @return Response
+	 * @throws \LogicException
+	 * @throws RequestException
+	 */
+	public function send() {
+		if (!function_exists('curl_init')) {
+			throw new RequestException('curl_init doesn\'t exists. Is curl extension instaled and enabled?');
+		}
+		if (!$this->hasUrl) {
+			/// Cannot send request without url
+			/// throw new \LogicException("Cannot send request without URL.");
+			return new Response();
+		}
+		$this->setUpCookies();
+		$this->setUpHeaders();
 		/// Set post fields to CURL handle
 		if (count($this->post)>0 &&
 			($this->method == self::POST || $this->method == self::PUT || $this->method == self::DELETE)) {
@@ -513,7 +494,6 @@ class Request {
 /**
  * Class Response, represents HTTP response
  * @package HttpHelper
- * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 class Response {
 
@@ -683,7 +663,6 @@ class Response {
 /**
  * Class Cookie
  * @package HttpHelper
- * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 class Cookie {
 
@@ -737,6 +716,5 @@ class Cookie {
 /**
  * Class RequestException
  * @package HttpHelper
- * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 class RequestException extends \Exception { }
