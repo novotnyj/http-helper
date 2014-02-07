@@ -1,6 +1,6 @@
 # HttpHelper
 
-This PHP module has started as alternative to the pecl_http. 
+This PHP library was created as alternative to the pecl_http. 
 
 Goal is to make working with HTTP requests and cURL easier and object oriented.
 
@@ -8,7 +8,11 @@ Basic methods are using names similar to pecl_http HttpRequest to make it easier
 
 HttpHelper\Request is using cURL underhood so you need to have cURL extension enabled in your php.ini
 
-## Examples
+## Requirements
+
+HttpHelper requires PHP 5.3.1 or later with php5-curl installed.
+
+## Usage examples
 
 ### Get request
 
@@ -24,7 +28,7 @@ if ($request->getResponseCode() == 200) {
 }
 ```
 
-Or you can use HttpHelper\Response object returned by send method:
+Or you can use HttpHelper\Response object returned by send method. Also wrap send method in try/catch block in case something went wrong:
 
 ```php
 ...
@@ -73,7 +77,7 @@ $request->setPostFields(array(
 
 ### Follow redirects
 
-To enable automatic following Location header (for 301 and 302 response codes):
+To enable automatic following Location header (for 301, 302 and 303 response codes):
 
 ```php
 ...
@@ -89,7 +93,7 @@ To follow Location for 999 times:
 $request->enableRedirects(999);
 ```
 
-Note: This function is not using CURLOPT_FOLLOWLOCATION, so you should be fine even with open_basedir or safe_mode in your php.ini
+**Note:** This function is not using CURLOPT_FOLLOWLOCATION, so you should be fine even with open_basedir or safe_mode in your php.ini
 
 ### Use response cookies
 

@@ -1,0 +1,19 @@
+{
+    "name": "novotnyj/http-helper",
+    "description" : "PHP library to help working with HTTP requests and responses without pecl_http.",
+    "version": "1.0.0",
+	"homepage": "https://github.com/novotnyj/http-helper",
+	"license": "BSD-3-Clause",
+	"type": "library",
+	"require": {
+	        "php" : ">=5.3.1",
+			"ext-curl": "*"
+	},
+	"keywords": ["php", "http"],
+	"authors": [
+	        {
+	            "name": "Jan Novotny",
+	            "email": "naj.yntovon@gmail.com"
+	        }
+	]
+}

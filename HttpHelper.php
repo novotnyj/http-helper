@@ -476,12 +476,13 @@ class Request {
 			$this->addCookies($this->response->getCookies());
 		}
 		/// Are redirects enabled? (Also check redirects count)
-		if ($this->autoFollow && ($this->response->getCode() == 302 || $this->response->getCode()==301) 
+		if ($this->autoFollow && ($this->response->getCode() == 301 || 
+			$this->response->getCode()==302 || $this->response->getCode()==303) 
 			&& $this->redirectCount < $this->maxRedirects) {
 			/// Change method to GET
 			$this->setMethod(self::GET);
 			/// Find out location
-			$location = $this->response->getHeaders()['Location'];
+			$location = $this->response->getHeader('Location');
 			if (strpos($location, '/') == 0 && $this->url != NULL) {
 				$url = isset($this->url['scheme']) ? $this->url['scheme'] . '://' : '';
 				if (isset($this->url['user']) && isset($this->url['pass'])) {
