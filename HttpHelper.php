@@ -436,7 +436,7 @@ class Request {
 		/// Set post fields to CURL handle
 		if (count($this->post)>0 &&
 			($this->method == self::POST || $this->method == self::PUT || $this->method == self::DELETE)) {
-			@curl_setopt($this->handle, CURLOPT_POSTFIELDS, $this->post);
+			@curl_setopt($this->handle, CURLOPT_POSTFIELDS, http_build_query($this->post));
 		}
 		/// Execute
 		$response = curl_exec($this->handle);
@@ -487,6 +487,10 @@ class Request {
 			$this->redirectCount = 0;
 		}
 		return $this->response;
+	}
+
+	public function getHandle() {
+		return $this->handle;
 	}
 
 }
