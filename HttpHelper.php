@@ -489,6 +489,10 @@ class Request {
 		return $this->response;
 	}
 
+	/**
+	 * Returns curl handle
+	 * @return resource
+	 */
 	public function getHandle() {
 		return $this->handle;
 	}
