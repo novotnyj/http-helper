@@ -190,9 +190,9 @@ class Request {
 	}
 
 	/**
-	 * Get the previously set request URL.
-	 * @return string
-	 */
+	* Get the previously set request URL.
+	* @return string
+	*/
 	public function getUrl() {
 		return $this->rawUrl;
 	}
@@ -280,9 +280,9 @@ class Request {
 	}
 
 	/**
-	 * Get previously set request headers.
-	 * @return array Array of headers
-	 */
+	* Get previously set request headers.
+	* @return array Array of headers
+	*/
 	public function getHeaders() {
 		return $this->getHeader();
 	}
@@ -437,6 +437,8 @@ class Request {
 
 		/// Dont send request without url
 		if (!$this->hasUrl) {
+			/// Cannot send request without url
+			/// throw new \LogicException("Cannot send request without URL.");
 			return new Response();
 		}
 
@@ -752,4 +754,3 @@ class Cookie {
  * @package HttpHelper
  */
 class RequestException extends \Exception { }
-
