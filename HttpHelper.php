@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @version 1.0.2
+ * @version 1.0.3
  * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 namespace HttpHelper;
@@ -89,19 +89,19 @@ class Request {
 	private $rawUrl = '';
 
 	/**
-	* @var int
-	*/
+	 * @var int
+	 */
 	private $connectionTimeout = 0;
 
 	public function __construct($url = NULL, $method = NULL){
 		$this->response = new Response();
-		if (function_exists('curl_init')) {			
+		if (function_exists('curl_init')) {
 			$this->handle = curl_init();
 			@curl_setopt($this->handle, CURLOPT_RETURNTRANSFER, 1);
-			@curl_setopt($this->handle, CURLOPT_HEADER, 1);		
+			@curl_setopt($this->handle, CURLOPT_HEADER, 1);
 			if ($url) $this->setUrl($url);
 			if ($method) $this->setMethod($method);
-		}				
+		}
 	}
 
 	/**
@@ -111,36 +111,36 @@ class Request {
 	 */
 	public function setMethod($method){
 		switch ($method){
-			case self::GET: curl_setopt($this->handle, CURLOPT_HTTPGET, TRUE); 
-							$this->method = self::GET; 
-							break;
-			case self::PUT: curl_setopt($this->handle, CURLOPT_CUSTOMREQUEST, self::PUT); 
-							$this->method = self::PUT; 
-							break;
-			case self::POST: curl_setopt($this->handle, CURLOPT_POST, TRUE); 
-							$this->method = self::POST;
-							break;
-			case self::HEAD: curl_setopt($this->handle, CURLOPT_NOBODY, TRUE); 
-							$this->method = self::HEAD;
-							break;
-			case self::DELETE: curl_setopt($this->handle, CURLOPT_CUSTOMREQUEST, self::DELETE); 
-							$this->method = self::DELETE;				
-							break;
+			case self::GET: curl_setopt($this->handle, CURLOPT_HTTPGET, TRUE);
+				$this->method = self::GET;
+				break;
+			case self::PUT: curl_setopt($this->handle, CURLOPT_CUSTOMREQUEST, self::PUT);
+				$this->method = self::PUT;
+				break;
+			case self::POST: curl_setopt($this->handle, CURLOPT_POST, TRUE);
+				$this->method = self::POST;
+				break;
+			case self::HEAD: curl_setopt($this->handle, CURLOPT_NOBODY, TRUE);
+				$this->method = self::HEAD;
+				break;
+			case self::DELETE: curl_setopt($this->handle, CURLOPT_CUSTOMREQUEST, self::DELETE);
+				$this->method = self::DELETE;
+				break;
 			default:
 				throw new \InvalidArgumentException('Unknown method: ' . $method);
 		}
 	}
-	
+
 	/**
-	* Enables verbose output of CURL, usable for debugging.
-	*/
+	 * Enables verbose output of CURL, usable for debugging.
+	 */
 	public function enableVerbose() {
 		@curl_setopt($this->handle, CURLOPT_VERBOSE, TRUE);
 	}
 
 	/**
-	* Disables verbose output of CURL.
-	*/
+	 * Disables verbose output of CURL.
+	 */
 	public function disableVerbose() {
 		@curl_setopt($this->handle, CURLOPT_VERBOSE, FALSE);
 	}
@@ -154,18 +154,18 @@ class Request {
 	}
 
 	/**
-	* Set request connection timeout.
-	* @param int $seconds number of seconds to wait while trying to connect. Use 0 to wait indefinitely.
-	*/
+	 * Set request connection timeout.
+	 * @param int $seconds number of seconds to wait while trying to connect. Use 0 to wait indefinitely.
+	 */
 	public function setConnectTimeout($seconds) {
 		$this->connectionTimeout = $seconds;
 		@curl_setopt($this->handle, CURLOPT_CONNECTTIMEOUT, $seconds);
 	}
 
 	/**
-	* Get previously set request connect timeout.
-	* @return int
-	*/
+	 * Get previously set request connect timeout.
+	 * @return int
+	 */
 	public function getConnectTimeout() {
 		return $this->connectionTimeout;
 	}
@@ -190,9 +190,9 @@ class Request {
 	}
 
 	/**
-	* Get the previously set request URL.
-	* @return string
-	*/
+	 * Get the previously set request URL.
+	 * @return string
+	 */
 	public function getUrl() {
 		return $this->rawUrl;
 	}
@@ -280,9 +280,9 @@ class Request {
 	}
 
 	/**
-	* Get previously set request headers.
-	* @return array Array of headers
-	*/
+	 * Get previously set request headers.
+	 * @return array Array of headers
+	 */
 	public function getHeaders() {
 		return $this->getHeader();
 	}
@@ -321,6 +321,14 @@ class Request {
 		$this->headers = array_merge($this->headers, $headers);
 	}
 
+    /**
+     * Unsets given header
+     * @param string $header
+     */
+    public function unsetHeader($header) {
+        unset($this->headers[$header]);
+    }
+
 	/**
 	 * Get previously set cookies.
 	 * @return array
@@ -350,9 +358,7 @@ class Request {
 			throw new \InvalidArgumentException("Array required, got: " . gettype($data));
 		}
 		foreach ($data as $key => $value) {
-			if (is_string($value)){
-				$this->post[$key] = $value;
-			}
+			$this->post[$key] = (string)$value;
 		}
 	}
 
@@ -400,16 +406,16 @@ class Request {
 			if (count($tmp) > 0) {
 				@curl_setopt($this->handle, CURLOPT_COOKIE, implode('; ', $tmp));
 			}
-		}		
+		}
 	}
-	
+
 	/**
 	 * Sets headers to cURL handle.
 	 */
 	private function setUpHeaders() {
 		if (count($this->headers)>0) {
-			$tmp = array();	
-			foreach ($this->headers as $key => $value) {				
+			$tmp = array();
+			foreach ($this->headers as $key => $value) {
 				$tmp[] = "$key: $value";
 			}
 			@curl_setopt($this->handle, CURLOPT_HTTPHEADER, $tmp);
@@ -423,27 +429,42 @@ class Request {
 	 * @throws RequestException
 	 */
 	public function send() {
+
+		/// Is there curl_init function
 		if (!function_exists('curl_init')) {
 			throw new RequestException('curl_init doesn\'t exists. Is curl extension instaled and enabled?');
 		}
+
+		/// Dont send request without url
 		if (!$this->hasUrl) {
-			/// Cannot send request without url
-			/// throw new \LogicException("Cannot send request without URL.");
 			return new Response();
 		}
+
 		$this->setUpCookies();
 		$this->setUpHeaders();
+
 		/// Set post fields to CURL handle
 		if (count($this->post)>0 &&
 			($this->method == self::POST || $this->method == self::PUT || $this->method == self::DELETE)) {
-			@curl_setopt($this->handle, CURLOPT_POSTFIELDS, $this->post);
+			if (isset($this->headers['Content-Type']) && preg_match('/urlencoded/i', $this->headers['Content-Type'])) {
+				@curl_setopt($this->handle, CURLOPT_POSTFIELDS, http_build_query($this->post));
+			} else {
+				@curl_setopt($this->handle, CURLOPT_POSTFIELDS, $this->post);
+			}
 		}
+
 		/// Execute
 		$response = curl_exec($this->handle);
+
+		/// Remove content type header to not be used in further requests
+		if (isset($this->headers['Content-Type'])) {
+			unset($this->headers['Content-Type']);
+		}
+
 		/// Handle CURL error
 		if ($response == FALSE) {
 			throw new RequestException("CURL error [" . curl_errno($this->handle) . "]: " . curl_error($this->handle),
-										curl_errno($this->handle));
+				curl_errno($this->handle));
 		}
 		/// Separate response header and body
 		/// Http 100 workaround
@@ -451,14 +472,15 @@ class Request {
 		$parts = (count($parts) > 1 ? 'HTTP/' : '').array_pop($parts);
 		list($headers, $body) = explode("\r\n\r\n", $parts, 2);
 		$this->response = new Response(curl_getinfo($this->handle, CURLINFO_HTTP_CODE), $headers, $body);
-		
+
 		/// If cookiesEnabled then call addCookies with response cookies
 		if ($this->cookiesEnabled) {
 			$this->addCookies($this->response->getCookies());
 		}
+
 		/// Are redirects enabled? (Also check redirects count)
-		if ($this->autoFollow && ($this->response->getCode() == 301 || 
-			$this->response->getCode()==302 || $this->response->getCode()==303) 
+		if ($this->autoFollow && ($this->response->getCode() == 301 ||
+				$this->response->getCode()==302 || $this->response->getCode()==303)
 			&& $this->redirectCount < $this->maxRedirects) {
 			/// Change method to GET
 			$this->setMethod(self::GET);
@@ -488,6 +510,18 @@ class Request {
 		}
 		return $this->response;
 	}
+
+	/**
+	 * Returns curl handle
+	 * @return resource
+	 */
+	public function getCurlHandle() {
+		return $this->handle;
+	}
+
+    public function close() {
+        curl_close($this->handle);
+    }
 
 }
 
@@ -697,9 +731,9 @@ class Cookie {
 	}
 
 	/**
-	* @param string $name
-	* @return bool
-	*/
+	 * @param string $name
+	 * @return bool
+	 */
 	public function __isset($name) {
 		return array_key_exists($name, $this->data);
 	}
@@ -718,3 +752,4 @@ class Cookie {
  * @package HttpHelper
  */
 class RequestException extends \Exception { }
+
