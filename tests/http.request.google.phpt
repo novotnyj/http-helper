@@ -1,7 +1,6 @@
 <?php
 
-require 'Tester/bootstrap.php';
-require '../HttpHelper.php';
+require '../vendor/autoload.php';
 
 use Tester\Assert,
 	HttpHelper\Request,

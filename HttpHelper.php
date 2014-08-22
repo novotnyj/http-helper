@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @version 1.0.3
+ * @version 1.0.4
  * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 namespace HttpHelper;
@@ -190,9 +190,9 @@ class Request {
 	}
 
 	/**
-	* Get the previously set request URL.
-	* @return string
-	*/
+	 * Get the previously set request URL.
+	 * @return string
+	 */
 	public function getUrl() {
 		return $this->rawUrl;
 	}
@@ -280,9 +280,9 @@ class Request {
 	}
 
 	/**
-	* Get previously set request headers.
-	* @return array Array of headers
-	*/
+	 * Get previously set request headers.
+	 * @return array Array of headers
+	 */
 	public function getHeaders() {
 		return $this->getHeader();
 	}
@@ -344,7 +344,7 @@ class Request {
 	 */
 	public function setPostFields($data){
 		$this->post = array();
-		return $this->addPostFields($data);
+        $this->addPostFields($data);
 	}
 
 	/**
@@ -361,6 +361,14 @@ class Request {
 			$this->post[$key] = (string)$value;
 		}
 	}
+
+    /**
+     * Returns Post fields
+     * @return array
+     */
+    public function getPostFields() {
+        return $this->post;
+    }
 
 	/**
 	 * Enables automatic following of Location headers;
@@ -437,8 +445,6 @@ class Request {
 
 		/// Dont send request without url
 		if (!$this->hasUrl) {
-			/// Cannot send request without url
-			/// throw new \LogicException("Cannot send request without URL.");
 			return new Response();
 		}
 
@@ -541,6 +547,12 @@ class Response {
 	 * @var string
 	 */
 	private $body;
+
+    /**
+     * @var string
+     */
+    private $decodedBody;
+
 	/**
 	 * @var array
 	 */
@@ -581,6 +593,14 @@ class Response {
 		 * http://stackoverflow.com/questions/2510868/php-convert-curl-exec-output-to-utf8
 		 */
 		$type = $this->getHeader("Content-Type","");
+        $contentEncoding = $this->getHeader('Content-Encoding','');
+        $transferEncoding = $this->getHeader('Transfer-Encoding','');
+
+        if ($contentEncoding != '') {
+            if (strtolower($contentEncoding) == 'gzip') {
+                $this->body = @gzdecode($this->body);
+            }
+        }
 		/* 1: HTTP Content-Type: header */
 		preg_match('@([\w/+]+)(;\s*charset=(\S+))?@i', $type, $m);
 		if (isset($m[3])) {
@@ -616,9 +636,11 @@ class Response {
 		/* Convert it if it is anything but UTF-8 */
 		/* You can change "UTF-8"  to "UTF-8//IGNORE" to ignore conversion errors and still output something reasonable */
 		if (isset($charset) && strtoupper($charset) != "UTF-8") {
-			return iconv($charset, 'UTF-8', $this->body);
+            $this->decodedBody = iconv($charset, 'UTF-8', $this->body);
+			return $this->decodedBody;
 		}
-		return $this->body;
+        $this->decodedBody = trim($this->body);
+		return $this->decodedBody;
 	}
 
 	/**
@@ -683,7 +705,11 @@ class Response {
 	 * @return string
 	 */
 	public function getBody() {
-		return $this->decodeBody();
+        if ($this->decodedBody == '') {
+            return $this->decodeBody();
+        } else {
+            return $this->decodedBody;
+        }
 	}
 
 	/**
@@ -754,3 +780,4 @@ class Cookie {
  * @package HttpHelper
  */
 class RequestException extends \Exception { }
+

@@ -4,7 +4,7 @@
 dir=$(cd `dirname $0` && pwd)
 
 # Path to test runner script
-runnerScript="$dir/Tester/tester.php"
+runnerScript="$dir/../vendor/nette/tester/Tester/tester.php"
 
 # Default runner arguments
 jobsNum=20
