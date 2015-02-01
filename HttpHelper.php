@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @version 1.0.4
+ * @version 1.0.5
  * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 namespace HttpHelper;
@@ -57,6 +57,11 @@ class Request {
 	 * @var array
 	 */
 	private $post = array();
+
+	/**
+	 * @var array
+	 */
+	private $params = array();
 
 	/**
 	 * @var bool
@@ -182,7 +187,6 @@ class Request {
 				throw new \InvalidArgumentException('Invalid URL, got: ' . $url);
 			}
 			$this->rawUrl = $url;
-			@curl_setopt($this->handle, CURLOPT_URL, $url);
 			$this->hasUrl = TRUE;
 		} else {
 			throw new \InvalidArgumentException('String required, got: ' . gettype($url));
@@ -348,6 +352,15 @@ class Request {
 	}
 
 	/**
+	 * Set the URL params, overwriting previously set URL params.
+	 * @param $params Array of name=>value pairs
+	 */
+	public function setParams($params) {
+		$this->params = array();
+		$this->addParams($params);
+	}
+
+	/**
 	 * Adds POST data entries, leaving previously set unchanged, unless a post entry with the same name already exists.
 	 * To send a file by POST request simply add it's absolute path as value.
 	 * @param $data Array of name=>value pairs
@@ -359,6 +372,20 @@ class Request {
 		}
 		foreach ($data as $key => $value) {
 			$this->post[$key] = (string)$value;
+		}
+	}
+
+	/**
+	 * Adds URL params, leaving previously set unchanged, unless a post entry with the same name already exists.
+	 * @param $data Array of name=>value pairs
+	 * @throws \InvalidArgumentException
+	 */
+	public function addParams($data) {
+		if (!is_array($data)) {
+			throw new \InvalidArgumentException("Array required, got: " . gettype($data));
+		}
+		foreach ($data as $key => $value) {
+			$this->params[$key] = (string)$value;
 		}
 	}
 
@@ -447,7 +474,11 @@ class Request {
 		if (!$this->hasUrl) {
 			return new Response();
 		}
-
+		$url = $this->rawUrl;
+		if (!empty($this->params)) {
+			$url .= '?' . http_build_query($this->params);
+		}
+		@curl_setopt($this->handle, CURLOPT_URL, $url);
 		$this->setUpCookies();
 		$this->setUpHeaders();
 
@@ -594,7 +625,7 @@ class Response {
 		 */
 		$type = $this->getHeader("Content-Type","");
         $contentEncoding = $this->getHeader('Content-Encoding','');
-        $transferEncoding = $this->getHeader('Transfer-Encoding','');
+        //$transferEncoding = $this->getHeader('Transfer-Encoding','');
 
         if ($contentEncoding != '') {
             if (strtolower($contentEncoding) == 'gzip') {
@@ -747,6 +778,7 @@ class Cookie {
 		if (array_key_exists($name, $this->data)) {
 			return $this->data[$name];
 		}
+		return null;
 	}
 
 	/**
