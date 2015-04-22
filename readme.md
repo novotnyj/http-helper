@@ -1,12 +1,10 @@
 # HttpHelper
 
-This PHP library was created as alternative to the pecl_http. 
+This PHP library was created as an alternative to the pecl_http. Goal was to make working with cURL easier and object oriented.
 
-Goal is to make working with HTTP requests and cURL easier and object oriented.
+Basic methods has names similar to pecl_http HttpRequest. This should make switching between pecl_http and HttpHelper easier.
 
-Basic methods are using names similar to pecl_http HttpRequest to make it easier to switch between pecl_http and HttpHelper.
-
-HttpHelper\Request is using cURL underhood so you need to have cURL extension enabled in your php.ini
+HttpHelper\Request is using cURL - make sure that you have cURL extension enabled in php.ini
 
 ## Requirements
 
@@ -15,6 +13,10 @@ HttpHelper requires PHP 5.3.1 or later with php5-curl installed.
 ## Instalation
 
 HttpHelper can be installed using [Composer](https://getcomposer.org/). Package can be found in [Packagist](https://packagist.org/packages/novotnyj/http-helper) repository.
+
+```
+composer require novotnyj/http-helper
+```
 
 ## Usage examples
 
