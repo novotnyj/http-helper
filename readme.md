@@ -74,7 +74,17 @@ To send a file using POST request:
 ...
 $request->setMethod(Request::POST);
 $request->setPostFields(array(
-	'upload' => '/absolute/path/to/file.ext'
+	'upload' => '@/absolute/path/to/file.ext'
+));
+...
+```
+
+To send a JSON POST request:
+```php
+...
+$request->setMethod(Request::POST);
+$request->setJSON(array(
+	'login' => 'foo'
 ));
 ...
 ```

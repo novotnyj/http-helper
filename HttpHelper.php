@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @version 1.0.5
+ * @version 1.0.6
  * @author Jan Novotny <naj.yntovon@gmail.com>
  */
 namespace HttpHelper;
@@ -57,6 +57,11 @@ class Request {
 	 * @var array
 	 */
 	private $post = array();
+
+	/**
+	 * @var null|array
+	 */
+	private $json = null;
 
 	/**
 	 * @var array
@@ -351,6 +356,13 @@ class Request {
         $this->addPostFields($data);
 	}
 
+	public function setJSON($data) {
+		if (!is_array($data)) {
+			throw new \InvalidArgumentException('JSON must be array');
+		}
+		$this->json = $data;
+	}
+
 	/**
 	 * Set the URL params, overwriting previously set URL params.
 	 * @param $params Array of name=>value pairs
@@ -457,6 +469,16 @@ class Request {
 		}
 	}
 
+	private function setCurlPostFields($fields) {
+		if (($this->method == self::POST || $this->method == self::PUT || $this->method == self::DELETE)) {
+			if (isset($this->headers['Content-Type']) && preg_match('/urlencoded/i', $this->headers['Content-Type'])) {
+				@curl_setopt($this->handle, CURLOPT_POSTFIELDS, http_build_query($fields));
+			} else {
+				@curl_setopt($this->handle, CURLOPT_POSTFIELDS, $fields);
+			}
+		}
+	}
+
 	/**
 	 * Send the HTTP request.
 	 * @return Response
@@ -479,17 +501,17 @@ class Request {
 			$url .= '?' . http_build_query($this->params);
 		}
 		@curl_setopt($this->handle, CURLOPT_URL, $url);
+
+		if ($this->json !== null) {
+			$this->addHeaders(array('Content-Type' => 'application/json'));
+		}
+
 		$this->setUpCookies();
 		$this->setUpHeaders();
 
 		/// Set post fields to CURL handle
-		if (count($this->post)>0 &&
-			($this->method == self::POST || $this->method == self::PUT || $this->method == self::DELETE)) {
-			if (isset($this->headers['Content-Type']) && preg_match('/urlencoded/i', $this->headers['Content-Type'])) {
-				@curl_setopt($this->handle, CURLOPT_POSTFIELDS, http_build_query($this->post));
-			} else {
-				@curl_setopt($this->handle, CURLOPT_POSTFIELDS, $this->post);
-			}
+		if (count($this->post)>0 || $this->json) {
+			$this->setCurlPostFields($this->json ? json_encode($this->json) : $this->post);
 		}
 
 		/// Execute
