@@ -1,7 +1,7 @@
 {
     "name": "novotnyj/http-helper",
-    "description" : "PHP library to help working with HTTP requests and responses without pecl_http.",
-    "version": "1.0.6",
+    "description" : "Object oriented cURL.",
+    "version": "2.0.0",
 	"homepage": "https://github.com/novotnyj/http-helper",
 	"license": "BSD-3-Clause",
 	"type": "library",
@@ -25,7 +25,7 @@
 		}
 	},
 	"autoload": {
-		"classmap": ["HttpHelper.php"]
+		"classmap": ["src/"]
 	},
 	"support": {
 		"issues": "https://github.com/novotnyj/http-helper/issues"
