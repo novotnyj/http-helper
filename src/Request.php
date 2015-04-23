@@ -427,7 +427,6 @@ class Request {
 	 *  Filters and sets cookies to cURL handle.
 	 */
 	private function setUpCookies() {
-		/// @Todo: filter cookies -> check domain, path, Secure, HttpOnly and maybe Expires and Max-Age properties
 		if (count($this->cookies)>0) {
 			$tmp = array();
 			foreach ($this->cookies as $cookie) {
@@ -467,6 +466,10 @@ class Request {
 		}
 	}
 
+	/**
+	 * Sets CURLOPT_POSTFIELDS
+	 * @param array $fields
+	 */
 	private function setCurlPostFields($fields) {
 		if (($this->method == self::POST || $this->method == self::PUT || $this->method == self::DELETE)) {
 			if (isset($this->headers['Content-Type']) && preg_match('/urlencoded/i', $this->headers['Content-Type'])) {
@@ -578,7 +581,10 @@ class Request {
 		return $this->handle;
 	}
 
-	public function close() {
+	/**
+	 * Destructor
+	 */
+	public function __destruct() {
 		curl_close($this->handle);
 	}
 
