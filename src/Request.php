@@ -333,7 +333,9 @@ class Request {
 	 * @param string $header
 	 */
 	public function unsetHeader($header) {
-		unset($this->headers[$header]);
+		if (array_key_exists($header, $this->headers)) {
+			unset($this->headers[$header]);
+		}
 	}
 
 	/**
@@ -346,7 +348,6 @@ class Request {
 
 	/**
 	 * Set the POST data entries, overwriting previously set POST data.
-	 * To send a file by POST request simply add it's absolute path as value.
 	 * @param $data Array of name=>value pairs
 	 */
 	public function setPostFields($data){
@@ -354,6 +355,10 @@ class Request {
 		$this->addPostFields($data);
 	}
 
+	/**
+	 * Sets JSON data to be sent.
+	 * @param array $data
+	 */
 	public function setJSON($data) {
 		if (!is_array($data)) {
 			throw new \InvalidArgumentException('JSON must be array');
@@ -481,6 +486,33 @@ class Request {
 	}
 
 	/**
+	 * Sets following request and sends it
+	 * @throws RequestException
+	 */
+	private function doFollow() {
+		/// Change method to GET
+		$this->setMethod(self::GET);
+		/// Find out location
+		$location = $this->response->getHeader('Location');
+		if (strpos($location, '/') == 0 && $this->url != NULL) {
+			$url = isset($this->url['scheme']) ? $this->url['scheme'] . '://' : '';
+			if (isset($this->url['user']) && isset($this->url['pass'])) {
+				$url .= $this->url['user'] . ':' . $this->url['pass'] . '@';
+			}
+			$url .= isset($this->url['host']) ? $this->url['host'] : '';
+			$url .= isset($this->url['port']) ? ':' . $this->url['port'] : '';
+			$url .= $location;
+			$location = $url;
+		}
+		$this->setUrl($location);
+		$this->addHeaders(array(
+			'Referer' => $this->rawUrl
+		));
+		$this->redirectCount++;
+		$this->response = $this->send();
+	}
+
+	/**
 	 * Send the HTTP request.
 	 * @return Response
 	 * @throws \LogicException
@@ -519,15 +551,14 @@ class Request {
 		$response = curl_exec($this->handle);
 
 		/// Remove content type header to not be used in further requests
-		if (isset($this->headers['Content-Type'])) {
-			unset($this->headers['Content-Type']);
-		}
+		$this->unsetHeader('Content-Type');
 
 		/// Handle CURL error
 		if ($response == FALSE) {
 			throw new RequestException("CURL error [" . curl_errno($this->handle) . "]: " . curl_error($this->handle),
 				curl_errno($this->handle));
 		}
+
 		/// Separate response header and body
 		/// Http 100 workaround
 		$parts = explode("\r\n\r\nHTTP/", $response);
@@ -544,26 +575,7 @@ class Request {
 		if ($this->autoFollow && ($this->response->getCode() == 301 ||
 				$this->response->getCode()==302 || $this->response->getCode()==303)
 			&& $this->redirectCount < $this->maxRedirects) {
-			/// Change method to GET
-			$this->setMethod(self::GET);
-			/// Find out location
-			$location = $this->response->getHeader('Location');
-			if (strpos($location, '/') == 0 && $this->url != NULL) {
-				$url = isset($this->url['scheme']) ? $this->url['scheme'] . '://' : '';
-				if (isset($this->url['user']) && isset($this->url['pass'])) {
-					$url .= $this->url['user'] . ':' . $this->url['pass'] . '@';
-				}
-				$url .= isset($this->url['host']) ? $this->url['host'] : '';
-				$url .= isset($this->url['port']) ? ':' . $this->url['port'] : '';
-				$url .= $location;
-				$location = $url;
-			}
-			$this->setUrl($location);
-			$this->addHeaders(array(
-				'Referer' => $this->rawUrl
-			));
-			$this->redirectCount++;
-			$this->response = $this->send();
+			$this->doFollow();
 		} else {
 			if ($this->redirectCount == $this->maxRedirects) {
 				throw new RequestException("Maximum of " . $this->maxRedirects . " redirects reached.");
