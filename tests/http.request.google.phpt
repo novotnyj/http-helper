@@ -14,7 +14,7 @@ $obj->setUrl('www.google.com');
 
 try {
 	$response = $obj->send();
-	Assert::same($response->getCode(), 200);	
+	Assert::same($response->getCode(), 200);
 } catch(RequestException $e) {
-	echo $e->getMessage();	
+	echo $e->getMessage();
 }

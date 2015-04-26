@@ -380,7 +380,7 @@ class Request {
 	}
 
 	/**
-	 * Enables automatic following of Location headers;
+	 * Enables automatic following of Location headers
 	 * @param int $limit
 	 */
 	public function enableRedirects($limit = 20) {
@@ -389,7 +389,7 @@ class Request {
 	}
 
 	/**
-	 * Disables automatic following of Location headers;
+	 * Disables automatic following of Location headers
 	 */
 	public function disableRedirects() {
 		$this->autoFollow = FALSE;
