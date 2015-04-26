@@ -9,14 +9,10 @@ namespace HttpHelper;
  */
 class Curl {
 
-	/**
-	 * @var Resource
-	 */
+	/** @var Resource */
 	protected $handle;
 
-	/**
-	 * @var int
-	 */
+	/** @var int */
 	private $redirectCount = 0;
 
 	public function __constructor() {

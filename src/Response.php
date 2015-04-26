@@ -9,27 +9,19 @@ namespace HttpHelper;
  */
 class Response {
 
-	/**
-	 * @var int
-	 */
+	/** @var int */
 	private $code;
-	/**
-	 * @var string
-	 */
+
+	/** @var string */
 	private $body;
 
-	/**
-	 * @var string
-	 */
+	/** @var string */
 	private $decodedBody;
 
-	/**
-	 * @var array
-	 */
+	/** @var array */
 	private $headers = array();
-	/**
-	 * @var array
-	 */
+
+	/** @var array */
 	private $cookies = array();
 
 	/**

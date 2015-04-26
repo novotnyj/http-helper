@@ -21,74 +21,46 @@ class Request {
 	/** HEAD method constant */
 	const HEAD = 'HEAD';
 
-	/**
-	 * @var Curl
-	 */
+	/** @var Curl */
 	private $curl;
 
-	/**
-	 * @var Response
-	 */
+	/** @var Response */
 	private $response;
 
-	/**
-	 * @var array
-	 */
+	/** @var array */
 	private $cookies = array();
 
-	/**
-	 * @var array
-	 */
+	/** @var array */
 	private $headers = array();
 
-	/**
-	 * @var string
-	 */
+	/** @var string */
 	private $method = self::GET;
 
-	/**
-	 * @var array
-	 */
+	/** @var array */
 	private $post = array();
 
-	/**
-	 * @var null|array
-	 */
+	/** @var null|array */
 	private $json = null;
 
-	/**
-	 * @var array
-	 */
+	/** @var array */
 	private $params = array();
 
-	/**
-	 * @var bool
-	 */
+	/** @var bool */
 	private $cookiesEnabled = FALSE;
 
-	/**
-	 * @var bool
-	 */
+	/** @var bool */
 	private $autoFollow = FALSE;
 
-	/**
-	 * @var int
-	 */
+	/** @var int */
 	private $maxRedirects = 20;
 
-	/**
-	 * @var string|null
-	 */
+	/** @var string|null */
 	private $url = NULL;
 
-	/**
-	 * @var string
-	 */
+	/** @var string */
 	private $rawUrl = '';
 
-	/**
-	 * @var int
-	 */
+	/** @var int */
 	private $connectionTimeout = 0;
 
 	public function __construct($url = NULL, $method = NULL){

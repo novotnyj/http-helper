@@ -9,9 +9,7 @@ namespace HttpHelper;
  */
 class Cookie {
 
-	/**
-	 * @var array
-	 */
+	/** @var array */
 	private $data = array();
 
 	public function __construct($name = '', $value = '') {
