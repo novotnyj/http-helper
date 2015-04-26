@@ -15,7 +15,7 @@ class Curl {
 	/** @var int */
 	private $redirectCount = 0;
 
-	public function __constructor() {
+	public function __construct() {
 		if (function_exists('curl_init')) {
 			$this->handle = curl_init();
 			@curl_setopt($this->handle, CURLOPT_RETURNTRANSFER, 1);
@@ -215,7 +215,7 @@ class Curl {
 		if ($redirectsEnabled && ($response->getCode() == 301 ||
 				$response->getCode()==302 || $response->getCode()==303)
 			&& $this->redirectCount < $maxRedirects) {
-			$this->doFollow($request, $response, $maxRedirects);
+			$response = $this->doFollow($request, $response, $maxRedirects);
 		} else {
 			if ($this->redirectCount == $maxRedirects) {
 				throw new RequestException("Maximum of " . $maxRedirects . " redirects reached.");
