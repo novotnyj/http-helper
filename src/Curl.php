@@ -185,6 +185,7 @@ class Curl {
 		if (count($request->getPostFields())>0 || $request->getJSON()) {
 			$fields = $request->getJSON() ? json_encode($request->getJSON()) : $request->getPostFields();
 			$this->setPostFields($fields, $request->getMethod(), $request->getHeader('Content-Type'));
+			$request->setJSON(null);
 		}
 
 		/// Execute

@@ -2,3 +2,5 @@
 vendor/
 *.lock
 *.orig
+.idea/
+.DS_Store

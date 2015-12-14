@@ -319,9 +319,6 @@ class Request {
 	 * @param array $data
 	 */
 	public function setJSON($data) {
-		if (!is_array($data)) {
-			throw new \InvalidArgumentException('JSON must be array');
-		}
 		$this->json = $data;
 	}
 
